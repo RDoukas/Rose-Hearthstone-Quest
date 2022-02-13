@@ -5,91 +5,106 @@ require 'uri'
 
 class CardsController < ApplicationController
 
- def get_token
-  uri = URI.parse("https://us.battle.net/oauth/token")
-  request = Net::HTTP::Post.new(uri)
-  request.basic_auth(ENV["CLIENT_ID"], ENV["CLIENT_SECRET"])
-  request.set_form_data(
-  "grant_type" => "client_credentials",
- )
+  def get_token
+    uri = URI.parse("https://us.battle.net/oauth/token")
+    request = Net::HTTP::Post.new(uri)
+    request.basic_auth(ENV["CLIENT_ID"], ENV["CLIENT_SECRET"])
+    request.set_form_data(
+    "grant_type" => "client_credentials",
+  )
 
- req_options = {
-   use_ssl: uri.scheme == "https",
- }
+    req_options = {
+      use_ssl: uri.scheme == "https",
+    }
 
-  response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
-   http.request(request)
-  end
-  # ERROR unable to get response.
+    response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
+    http.request(request)
+    end
+    if response == nil
+      puts "error with http request"
+    end 
 
-  parsed_body = JSON.parse(response.body)
-  # ERROR unable to parse data
-  parsed_body["access_token"]
-  # ERROR, no token found.
+    parsed_body = JSON.parse(response.body)
+    if parsed_body == nil 
+      puts "error parsing data"
+    end 
+
+    @access_token = parsed_body["access_token"]
   end
 
  
  def index 
-  access_token = get_token
-  @cards = HTTP.auth("Bearer #{access_token}").get("https://us.api.blizzard.com/hearthstone/cards?locale=en_US&class=druid%2Cwarlock&manaCost=7%2C8%2C9%2C10&rarity=legendary")
-  # ERROR unable to process request
-  @cards = JSON.parse(@cards.body)
-  # ERROR unable to parse
+  @access_token = get_token
 
-  # needs to get moved down after all the checking :(
-  @hand = @cards["cards"].sample(10)
-  # ERROR deck is less than 10 cards
-  @hand.sort! {|a, b| a["id"] <=> b["id"]}
-  
-
-  @hand.each do |h|
-    if h["rarityId"] == 5
-      h["rarityId"] = "Legendary"
-    else 
-      render json: "this card is not legendary"
-      # ERROR
-    end
-    if h["classId"] == 2
-      h["classId"] = "Druid"
-    elsif h["classId"] == 9
-      h["classId"] = "Warlock"
-    else 
-      # ERROR 
-      render json: "this card is not a warlock or druid"
-    end
-    if h["cardTypeId"] == 3
-      h["cardTypeId"] = "Hero"
-    elsif h["cardTypeId"] == 4
-      h["cardTypeId"] = "Minion"
-    elsif h["cardTypeId"] == 5
-      h["cardTypeId"] = "Spell"
-    elsif
-      h["cardTypeId"] == 7
-      h["cardTypeId"] = "Weapon"
-    elsif
-       h["cardTypeId"] == 10
-      h["cardTypeId"] = "HeroPower"
-    else 
-      # ERROR invalid type
-    end 
-    # MAKE SURE ALL WORK 
+  @cards = HTTP.auth("Bearer #{@access_token}").get("https://us.api.blizzard.com/hearthstone/cards?locale=en_US&class=druid%2Cwarlock&manaCost=7%2C8%2C9%2C10&rarity=legendary")
+  if @cards == nil
+    puts "error with http request"
   end
-  # ERROR, if any fields are numbers (yess, displayed as nums in return)
+  @cards = JSON.parse(@cards.body)
+  if @cards == nil
+    puts "error parsing data"
+  end
 
-  @sets = HTTP.auth("Bearer #{access_token}").get("https://us.api.blizzard.com/hearthstone/metadata/sets?locale=en_US")
-  # ERROR
+  @sets = HTTP.auth("Bearer #{@access_token}").get("https://us.api.blizzard.com/hearthstone/metadata/sets?locale=en_US")
+  if @sets == nil
+    puts "error with http request"
+  end
   @sets = JSON.parse(@sets.body)
-  # ERROR
+  if @sets == nil
+    puts "error parsing data"
+  end
 
-  @hand.each do |h|
-    setId = h["cardSetId"]
+  
+  @cards_array = []
+
+  @cards["cards"].each do |c|
+    setId = c["cardSetId"]
     @sets.each do |s|
       setName = s["id"]
       if setId == setName
-        h["cardSetId"] = s["name"]
+        c["cardSetId"] = s["name"]
       end
     end
+    if c["classId"] == 2
+      c["classId"] = "Druid"
+    elsif c["classId"] == 9
+      c["classId"] = "Warlock"
+    else 
+      puts "#{c["name"]} is not a warlock or druid"
+    end
+    if c["rarityId"] == 5
+      c["rarityId"] = "Legendary"
+    else 
+      puts "#{c["name"]} is not legendary"
+    end
+    if c["cardTypeId"] == 3
+      c["cardTypeId"] = "Hero"
+    elsif c["cardTypeId"] == 4
+      c["cardTypeId"] = "Minion"
+    elsif c["cardTypeId"] == 5
+      c["cardTypeId"] = "Spell"
+    elsif
+      c["cardTypeId"] == 7
+      c["cardTypeId"] = "Weapon"
+    elsif
+       c["cardTypeId"] == 10
+      c["cardTypeId"] = "HeroPower"
+    else 
+      puts "error finding card type of #{c["name"]} "
+    end 
+    if (c["cardSetId"].is_a? String) && (c["cardTypeId"].is_a? String) && (c["rarityId"].is_a? String) && (c["classId"].is_a? String)
+      @cards_array << c 
+    else 
+      puts "error converting ids of #{c["name"]} to human readible data"
+    end
   end
+  @hand = @cards_array.sample(10)
+  if @hand.length < 10 
+    puts "oops you need more cards!"
+  elsif @hand.length > 10 
+    puts "oh no you have too many cards!"
+  end
+  @hand.sort! {|a, b| a["id"] <=> b["id"]}
  end 
 end
 

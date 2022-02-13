@@ -28,7 +28,6 @@ class CardsController < ApplicationController
     if parsed_body == nil 
       puts "error parsing data"
     end 
-
     @access_token = parsed_body["access_token"]
   end
 

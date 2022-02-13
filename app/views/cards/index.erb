@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Rose Hearthstone Quest</title>
+    <meta charset="UTF-8">
+    <style>
+     * {
+        box-sizing: border-box;
+        background-color: #202020;
+        color: #FFFFFF
+      }
+
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        text-align: center;
+      }
+      .header {
+       background-image: url("Hearthstone_logo.png");
+        padding: 25px;
+        text-align: center;
+        font-size: 30px;
+      }
+      thead {
+        text-align: center;
+        font-size: 20px;
+        margin: 10px;
+        padding: 10px;
+      }
+      table {
+       width: 90%;
+       text-align: center;
+       margin-right: auto;
+       margin-left: auto;
+      }
+      table, tr, th, td{
+        border: 1px solid;
+        border-collapse: collapse;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <table>
+    <div class="header">
+     <h2>Check out your Hearthstone Cards!</h2>
+    </div>
+    <thead>
+     <tr>
+        <th>Image</th>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Class</th>
+        <th>Rarity</th>
+        <th>Set</th>
+      </tr>
+    </thead>
+    <tbody>
+    <% @hand.each do |h| %>
+      <tr>
+        <td><%= image_tag "#{h["image"]}", style: 'height:275px' %></td>
+        <td><%= h["name"] %></td>
+        <td><%= h["cardTypeId"] %></td>
+        <td><%= h["classId"] %></td>
+        <td><%= h["rarityId"] %></td>
+        <td><%= h["cardSetId"] %></td>
+      </tr>
+    <% end %>
+  </tbody>
+    </table>
+  </body>
+</html>

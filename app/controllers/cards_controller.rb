@@ -4,6 +4,7 @@ require 'uri'
 
 
 class CardsController < ApplicationController
+  # gets an access token
 
   def get_token
     uri = URI.parse("https://us.battle.net/oauth/token")
@@ -11,7 +12,7 @@ class CardsController < ApplicationController
     request.basic_auth(ENV["CLIENT_ID"], ENV["CLIENT_SECRET"])
     request.set_form_data(
     "grant_type" => "client_credentials",
-  )
+    )
 
     req_options = {
       use_ssl: uri.scheme == "https",
@@ -35,15 +36,18 @@ class CardsController < ApplicationController
  def index 
   @access_token = get_token
 
+  # Pulls all cards from API
   @cards = HTTP.auth("Bearer #{@access_token}").get("https://us.api.blizzard.com/hearthstone/cards?locale=en_US&class=druid%2Cwarlock&manaCost=7%2C8%2C9%2C10&rarity=legendary")
   if @cards == nil
     puts "error with http request"
   end
+
   @cards = JSON.parse(@cards.body)
   if @cards == nil
     puts "error parsing data"
   end
 
+  # Pulls all sets from API
   @sets = HTTP.auth("Bearer #{@access_token}").get("https://us.api.blizzard.com/hearthstone/metadata/sets?locale=en_US")
   if @sets == nil
     puts "error with http request"
@@ -53,9 +57,8 @@ class CardsController < ApplicationController
     puts "error parsing data"
   end
 
-  
+  # Converts cards API id's from a number to a human readable string
   @cards_array = []
-
   @cards["cards"].each do |c|
     setId = c["cardSetId"]
     @sets.each do |s|
@@ -82,27 +85,30 @@ class CardsController < ApplicationController
       c["cardTypeId"] = "Minion"
     elsif c["cardTypeId"] == 5
       c["cardTypeId"] = "Spell"
-    elsif
-      c["cardTypeId"] == 7
+    elsif c["cardTypeId"] == 7
       c["cardTypeId"] = "Weapon"
-    elsif
-       c["cardTypeId"] == 10
+    elsif c["cardTypeId"] == 10
       c["cardTypeId"] = "HeroPower"
     else 
-      puts "error finding card type of #{c["name"]} "
+      puts "error finding card type for #{c["name"]} "
     end 
+    
+    # Checks that all id's have been converted to readable strings
+    # Only readable strings are included in final hand
     if (c["cardSetId"].is_a? String) && (c["cardTypeId"].is_a? String) && (c["rarityId"].is_a? String) && (c["classId"].is_a? String)
       @cards_array << c 
     else 
       puts "error converting ids of #{c["name"]} to human readible data"
     end
   end
+
+  # Creates and sorts 10 card hand 
   @hand = @cards_array.sample(10)
-  if @hand.length < 10 
-    puts "oops you need more cards!"
-  elsif @hand.length > 10 
-    puts "oh no you have too many cards!"
-  end
+    if @hand.length < 10 
+      puts "oops you need more cards!"
+    elsif @hand.length > 10 
+      puts "oh no you have too many cards!"
+    end
   @hand.sort! {|a, b| a["id"] <=> b["id"]}
  end 
 end

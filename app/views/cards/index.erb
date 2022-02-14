@@ -3,10 +3,11 @@
   <head>
     <title>Rose Hearthstone Quest</title>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="views/cards/favicon.png">
     <style>
      * {
         box-sizing: border-box;
-        background-color: #202020;
+        background-color: #303030;
         color: #FFFFFF
       }
 
@@ -15,7 +16,6 @@
         text-align: center;
       }
       .header {
-       background-image: url("Hearthstone_logo.png");
         padding: 25px;
         text-align: center;
         font-size: 30px;
@@ -29,43 +29,62 @@
       table {
        width: 90%;
        text-align: center;
-       margin-right: auto;
        margin-left: auto;
+       margin-right: auto;
       }
       table, tr, th, td{
         border: 1px solid;
         border-collapse: collapse;
         text-align: center;
       }
+      tbody {
+        padding-left: 30px;
+        padding-right: 30px;
+      }
+      td {
+        padding-left: 5px;
+        padding-right: 5px;
+      }
+      th {
+        padding-left: 30px;
+        padding-right: 30px;
+        padding-bottom: 10px;
+        padding-top: 10px
+      }
     </style>
   </head>
   <body>
     <table>
-    <div class="header">
-     <h2>Check out your Hearthstone Cards!</h2>
-    </div>
-    <thead>
-     <tr>
-        <th>Image</th>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Class</th>
-        <th>Rarity</th>
-        <th>Set</th>
-      </tr>
-    </thead>
-    <tbody>
-    <% @hand.each do |h| %>
-      <tr>
-        <td><%= image_tag "#{h["image"]}", style: 'height:275px' %></td>
-        <td><%= h["name"] %></td>
-        <td><%= h["cardTypeId"] %></td>
-        <td><%= h["classId"] %></td>
-        <td><%= h["rarityId"] %></td>
-        <td><%= h["cardSetId"] %></td>
-      </tr>
-    <% end %>
-  </tbody>
+      <div class="header">
+        <h2>Check out your Hearthstone Cards!</h2>
+      </div>
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Class</th>
+          <th>Rarity</th>
+          <th>Set</th>
+        </tr>
+      </thead>  
+        <tbody>
+        <% @hand.each do |h| %>
+          <tr>
+            <td><%= image_tag "#{h["image"]}", :style => "width: 200px" %></td>
+            <td><%= h["name"] %></td>
+            <td><%= h["cardTypeId"] %></td>
+            <td><%= h["classId"] %></td>
+            <td><%= h["rarityId"] %></td>
+            <td><%= h["cardSetId"] %></td>
+          </tr>
+        <% end %>
+      </tbody>
     </table>
+    <script>
+      window.onbeforeunload = function () {
+          window.scrollTo(0, 0);
+      }
+    </script>
   </body>
 </html>

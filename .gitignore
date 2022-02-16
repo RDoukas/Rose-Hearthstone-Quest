@@ -28,4 +28,3 @@
 /config/local_env.yml
 .env
 local_env.yml
-app/controllers/api/cards_controller.rb
